@@ -93,11 +93,15 @@ public class Empleado {
 
     @Column(name = "ultima_actualizacion_salarial")
     private LocalDate ultimaActualizacionSalarial;
-
+// hola
     // Getters y setters omitidos por brevedad
 
     // Método para calcular las horas trabajadas diarias
     public void calcularHorasTrabajadasDiarias() {
+        if (horaEntrada == null || horaSalida == null || descansoInicio == null || descansoFin == null) {
+            throw new IllegalArgumentException("Los valores de horaEntrada, horaSalida, descansoInicio y descansoFin no pueden ser nulos.");
+        }
+
         long horasTrabajadas = java.time.Duration.between(horaEntrada, horaSalida).toHours();
         long horasDescanso = java.time.Duration.between(descansoInicio, descansoFin).toHours();
         this.horasTrabajadasDiarias = horasTrabajadas - horasDescanso;
