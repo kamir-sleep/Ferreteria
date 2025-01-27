@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.proyecto.Fer.DTO.UsuariosDTO;
 import com.proyecto.Fer.model.UsuariosModel;
-import com.proyecto.Fer.model.DTO.UsuariosDTO;
 import com.proyecto.Fer.repository.UsuariosRepo;
 import com.proyecto.Fer.service.UsuariosService;
 

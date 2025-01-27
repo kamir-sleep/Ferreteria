@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.proyecto.Fer.DTO.UsuariosDTO;
 import com.proyecto.Fer.model.UsuariosModel;
-import com.proyecto.Fer.model.DTO.UsuariosDTO;
 import com.proyecto.Fer.repository.UsuariosRepo;
 import com.proyecto.Fer.service.UsuariosService;
 

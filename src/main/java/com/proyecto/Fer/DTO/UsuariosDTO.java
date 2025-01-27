@@ -1,4 +1,4 @@
-package com.proyecto.Fer.model.DTO;
+package com.proyecto.Fer.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

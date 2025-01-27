@@ -8,13 +8,15 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.proyecto.Fer.DTO.UsuariosDTO;
 import com.proyecto.Fer.model.UsuariosModel;
-import com.proyecto.Fer.model.DTO.UsuariosDTO;
 
 import jakarta.transaction.Transactional;
 
 public interface UsuariosRepo extends JpaRepository<UsuariosModel, String> {
-	//DTO
+
+    
+    //DTO
 	List<UsuariosDTO> findBy();
 	 // Buscar usuario por login
      Optional<UsuariosModel> findByLogin(String login);
@@ -52,5 +54,11 @@ public interface UsuariosRepo extends JpaRepository<UsuariosModel, String> {
     + "	u.passwd=?2 ")
     UsuariosModel verificarCuentaUsuario(String xlogin, String xpasswd);
 
+
+    //CAMBIAR CONTRASEÑA
+    @Modifying
+    @Transactional
+    @Query("UPDATE UsuariosModel u SET u.passwd = :nuevaPassword WHERE u.login = :login")
+    void cambiarPassword(@Param("login") String login, @Param("nuevaPassword") String nuevaPassword);
 
 }
