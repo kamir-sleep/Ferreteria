@@ -3,11 +3,16 @@ package com.proyecto.Fer.model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import lombok.Data;
 
 @Data
@@ -93,7 +98,13 @@ public class Empleado {
 
     @Column(name = "ultima_actualizacion_salarial")
     private LocalDate ultimaActualizacionSalarial;
-// hola
+
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
+    @JoinColumn(name = "usuario_login", referencedColumnName = "login")
+    private UsuariosModel usuario;
+
     // Getters y setters omitidos por brevedad
 
     // Método para calcular las horas trabajadas diarias
@@ -118,4 +129,6 @@ public class Empleado {
         long antiguedadEnDias = java.time.temporal.ChronoUnit.DAYS.between(fechaIngreso, fechaActual);
         this.diasVacaciones = (int) (antiguedadEnDias / 365) * 12 / 12; // Por ejemplo: 12 días al año
     }
+
+
 }

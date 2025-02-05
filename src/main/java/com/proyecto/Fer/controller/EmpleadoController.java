@@ -30,44 +30,29 @@ public class EmpleadoController {
     private EmpleadoService empleadoService;
 
     @GetMapping
-    public List<Empleado> obtenerTodos() {
-        return empleadoService.obtenerTodos();
+    public ResponseEntity<List<Empleado>> obtenerTodos() {
+        return ResponseEntity.ok(empleadoService.obtenerTodos());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Empleado> obtenerPorId(@PathVariable Long id) {
-        try {
-            Empleado empleado = empleadoService.obtenerPorId(id);
-            return ResponseEntity.ok(empleado);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        return ResponseEntity.ok(empleadoService.obtenerPorId(id));
     }
 
-    @PostMapping
-    public Empleado crear(@RequestBody Empleado empleado) {
-        return empleadoService.crearOActualizar(empleado);
+    @PostMapping("/registro")
+    public ResponseEntity<Empleado> crearEmpleado(@RequestBody Empleado empleado) {
+        return new ResponseEntity<>(empleadoService.crearEmpleado(empleado), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Empleado> actualizar(@PathVariable Long id, @RequestBody Empleado empleadoDetalles) {
-        try {
-            Empleado empleadoExistente = empleadoService.obtenerPorId(id);
-            empleadoDetalles.setId(id);
-            return ResponseEntity.ok(empleadoService.crearOActualizar(empleadoDetalles));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+    public ResponseEntity<Empleado> actualizarEmpleado(@PathVariable Long id, @RequestBody Empleado empleado) {
+        return ResponseEntity.ok(empleadoService.actualizarEmpleado(id, empleado));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        try {
-            empleadoService.eliminar(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+    public ResponseEntity<Void> eliminarEmpleado(@PathVariable Long id) {
+        empleadoService.eliminarEmpleado(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/calcular-vacaciones")

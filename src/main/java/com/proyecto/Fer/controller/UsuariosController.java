@@ -1,13 +1,19 @@
 package com.proyecto.Fer.controller;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +33,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 @RestController
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
 public class UsuariosController {
 
 	@Value("${jwt.secret.key}")
@@ -47,6 +53,9 @@ public class UsuariosController {
 	@Autowired
 	public UsuariosService service;
 
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
 	
 	
 	@GetMapping("/UsuariosDTO")
@@ -56,6 +65,38 @@ public class UsuariosController {
 	
 	
 	//TOKEN
+	@PostMapping("/api/login")
+public ResponseEntity<?> acceso(@RequestParam("login") String xlogin, @RequestParam("passwd") String xpass) {
+    Optional<UsuariosModel> optionalUser = datosrep.findByLogin(xlogin);
+    
+    if (optionalUser.isPresent()) {
+        UsuariosModel user = optionalUser.get();
+
+        if (passwordEncoder.matches(xpass, user.getPasswd())) {
+            try {
+                String xtoken = getJWTToken(xlogin);
+                System.out.println("Este es mi TOKEN generado:: " + xtoken);
+                
+                // Crear respuesta JSON válida
+                Map<String, Object> response = new HashMap<>();
+                response.put("login", user.getLogin());
+                response.put("estado", user.getEstado());
+                response.put("token", xtoken);
+
+                return ResponseEntity.ok(response);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error al generar token."));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Contraseña incorrecta."));
+        }
+    } else {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Usuario no encontrado."));
+    }
+}
+
+
+	/*
 	@PostMapping("/api/login")
 	public UsuariosModel acceso(@RequestParam("login") String xlogin, @RequestParam("passwd") String xpass ) {
 		UsuariosModel user= new UsuariosModel();
@@ -72,7 +113,7 @@ public class UsuariosController {
 			System.out.println("ACCESO NO PERMITIDO...");
 		}
 		return user;
-	}
+	} */
 	
 	
 

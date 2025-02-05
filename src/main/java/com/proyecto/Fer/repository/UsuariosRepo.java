@@ -20,7 +20,10 @@ public interface UsuariosRepo extends JpaRepository<UsuariosModel, String> {
 	List<UsuariosDTO> findBy();
 	 // Buscar usuario por login
      Optional<UsuariosModel> findByLogin(String login);
-     
+
+     //buscar login 
+     boolean existsByLogin(String login);
+
 	//Eliminar Usuarios
 	@Modifying
 	@Transactional
