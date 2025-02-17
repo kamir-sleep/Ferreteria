@@ -1,5 +1,6 @@
 package com.proyecto.Fer.controller;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +25,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.proyecto.Fer.DTO.RolDTO;
 import com.proyecto.Fer.DTO.UsuariosDTO;
+import com.proyecto.Fer.model.MenuModel;
+import com.proyecto.Fer.model.RoleMenuMapping;
+import com.proyecto.Fer.model.UserRoleMapping;
 import com.proyecto.Fer.model.UsuariosModel;
+import com.proyecto.Fer.repository.RoleMenuMappingRepository;
+import com.proyecto.Fer.repository.UserRoleMappingRepository;
 import com.proyecto.Fer.repository.UsuariosRepo;
 import com.proyecto.Fer.service.UsuariosService;
 
@@ -33,7 +40,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin("*")
 public class UsuariosController {
 
 	@Value("${jwt.secret.key}")
@@ -56,6 +63,12 @@ public class UsuariosController {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	@Autowired
+	private RoleMenuMappingRepository roleMenuMappingRepository;
+
+	@Autowired
+	private UserRoleMappingRepository userRoleMappingRepository;
+
 	
 	
 	@GetMapping("/UsuariosDTO")
@@ -64,8 +77,7 @@ public class UsuariosController {
 	}
 	
 	
-	//TOKEN
-	@PostMapping("/api/login")
+@PostMapping("/api/login")
 public ResponseEntity<?> acceso(@RequestParam("login") String xlogin, @RequestParam("passwd") String xpass) {
     Optional<UsuariosModel> optionalUser = datosrep.findByLogin(xlogin);
     
@@ -73,49 +85,39 @@ public ResponseEntity<?> acceso(@RequestParam("login") String xlogin, @RequestPa
         UsuariosModel user = optionalUser.get();
 
         if (passwordEncoder.matches(xpass, user.getPasswd())) {
-            try {
-                String xtoken = getJWTToken(xlogin);
-                System.out.println("Este es mi TOKEN generado:: " + xtoken);
-                
-                // Crear respuesta JSON válida
-                Map<String, Object> response = new HashMap<>();
-                response.put("login", user.getLogin());
-                response.put("estado", user.getEstado());
-                response.put("token", xtoken);
+            String xtoken = getJWTToken(xlogin);
+            
+			System.out.println(xtoken);
+            // Fetch user roles
+            List<UserRoleMapping> userRoles = userRoleMappingRepository.findByUsuarioLogin(xlogin);
+            List<RolDTO> roles = userRoles.stream()
+                .map(mapping -> new RolDTO(mapping.getRol().getIdRol(), mapping.getRol().getNombre()))
+                .collect(Collectors.toList());
 
-                return ResponseEntity.ok(response);
-            } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error al generar token."));
-            }
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Contraseña incorrecta."));
+            Map<String, Object> response = new HashMap<>();
+            response.put("login", user.getLogin());
+            response.put("estado", user.getEstado());
+            response.put("token", xtoken);
+            response.put("roles", roles);
+			 System.out.println(roles);
+
+            return ResponseEntity.ok(response);
         }
-    } else {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Usuario no encontrado."));
     }
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication failed"));
 }
 
+// New endpoint to get menus for a specific role
+@GetMapping("/api/menus/role/{rolId}")
+public ResponseEntity<List<MenuModel>> getMenusByRole(@PathVariable Long rolId) {
+    List<RoleMenuMapping> roleMenus = roleMenuMappingRepository.findByRolIdRol(rolId);
+    List<MenuModel> menus = roleMenus.stream()
+        .map(RoleMenuMapping::getMenu)
+        .collect(Collectors.toList());
+    
+    return ResponseEntity.ok(menus);
+}
 
-	/*
-	@PostMapping("/api/login")
-	public UsuariosModel acceso(@RequestParam("login") String xlogin, @RequestParam("passwd") String xpass ) {
-		UsuariosModel user= new UsuariosModel();
-		user = datosrep.verificarCuentaUsuario(xlogin, xpass);		
-		if (user != null) {
-			try {
-				String xtoken = getJWTToken(xlogin);
-				System.out.println("este es mi TOKEN generado::"+ xtoken);
-				user.setToken(xtoken);
-			} catch (Exception e) {
-				user = null;
-			}
-		}else {
-			System.out.println("ACCESO NO PERMITIDO...");
-		}
-		return user;
-	} */
-	
-	
 
 	private String getJWTToken(String username) {
 		List<GrantedAuthority> grantedAuthorities = AuthorityUtils
@@ -155,5 +157,85 @@ public ResponseEntity<?> acceso(@RequestParam("login") String xlogin, @RequestPa
 	public void modificarUsuarios(@RequestBody UsuariosModel xUsers, @PathVariable String xlogin) {
 		datosrep.modifyUsers(xlogin, xUsers.getPasswd(), xUsers.getEstado());
 	}
+
+
+ // Listar usuarios con sus roles asignados
+    @GetMapping("/api/usuarios/with-roles")
+    public ResponseEntity<List<Map<String, Object>>> listarUsuariosConRoles() {
+        List<UsuariosModel> usuarios = datosrep.findAll();
+        List<Map<String, Object>> usuariosConRoles = new ArrayList<>();
+
+        for (UsuariosModel usuario : usuarios) {
+            Map<String, Object> usuarioInfo = new HashMap<>();
+            usuarioInfo.put("login", usuario.getLogin());
+            usuarioInfo.put("estado", usuario.getEstado());
+
+            // Obtener roles del usuario
+            List<UserRoleMapping> userRoles = userRoleMappingRepository.findByUsuarioLogin(usuario.getLogin());
+            List<Map<String, Object>> roles = userRoles.stream()
+                .map(mapping -> {
+                    Map<String, Object> rol = new HashMap<>();
+                    rol.put("idRol", mapping.getRol().getIdRol());
+                    rol.put("nombre", mapping.getRol().getNombre());
+                    return rol;
+                })
+                .collect(Collectors.toList());
+
+            usuarioInfo.put("roles", roles);
+            usuariosConRoles.add(usuarioInfo);
+        }
+
+        return ResponseEntity.ok(usuariosConRoles);
+    }
+
+    // Obtener estadísticas de usuarios
+    @GetMapping("/api/usuarios/stats")
+    public ResponseEntity<Map<String, Long>> obtenerEstadisticasUsuarios() {
+        List<UsuariosModel> usuarios = datosrep.findAll();
+        
+        long totalUsuarios = usuarios.size();
+        long usuariosActivos = usuarios.stream()
+            .filter(u -> u.getEstado() == 1)
+            .count();
+
+        Map<String, Long> estadisticas = new HashMap<>();
+        estadisticas.put("totalUsuarios", totalUsuarios);
+        estadisticas.put("usuariosActivos", usuariosActivos);
+
+        return ResponseEntity.ok(estadisticas);
+    }
+
+    // Activar usuario
+    @PutMapping("/api/usuarios/{login}/activar")
+    public ResponseEntity<?> activarUsuario(@PathVariable String login) {
+        Optional<UsuariosModel> usuarioOpt = datosrep.findByLogin(login);
+        
+        if (usuarioOpt.isPresent()) {
+            UsuariosModel usuario = usuarioOpt.get();
+            usuario.setEstado(1); // 1 = activo
+            datosrep.save(usuario);
+            return ResponseEntity.ok(Map.of("mensaje", "Usuario activado correctamente"));
+        }
+        
+        return ResponseEntity.notFound().build();
+    }
+
+    // Desactivar usuario
+    @PutMapping("/api/usuarios/{login}/desactivar")
+    public ResponseEntity<?> desactivarUsuario(@PathVariable String login) {
+        Optional<UsuariosModel> usuarioOpt = datosrep.findByLogin(login);
+        
+        if (usuarioOpt.isPresent()) {
+            UsuariosModel usuario = usuarioOpt.get();
+            usuario.setEstado(0); // 0 = inactivo
+            datosrep.save(usuario);
+            return ResponseEntity.ok(Map.of("mensaje", "Usuario desactivado correctamente"));
+        }
+        
+        return ResponseEntity.notFound().build();
+    }
+
+
+
 
 }

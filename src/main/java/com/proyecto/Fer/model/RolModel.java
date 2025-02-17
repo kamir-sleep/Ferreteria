@@ -2,6 +2,9 @@ package com.proyecto.Fer.model;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -21,15 +24,13 @@ public class RolModel {
 
     @Column(name = "estado")
     private int estado;
+   
+    @JsonIgnore // Evitar la recursión infinita
+    @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserRoleMapping> userRoles = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "rol_menu",
-        joinColumns = @JoinColumn(name = "id_rol"),
-        inverseJoinColumns = @JoinColumn(name = "id_menu")
-    )
-    private Set<MenuModel> menus = new HashSet<>();
+    @JsonIgnore // Evitar la recursión infinita
+    @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RoleMenuMapping> roleMenus = new HashSet<>();
 
-    @ManyToMany(mappedBy = "roles")
-    private Set<UsuariosModel> usuarios = new HashSet<>();
 }

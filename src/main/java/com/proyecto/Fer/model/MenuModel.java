@@ -2,6 +2,9 @@ package com.proyecto.Fer.model;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -22,6 +25,8 @@ public class MenuModel {
     @Column(name = "estado")
     private int estado;
 
-    @ManyToMany(mappedBy = "menus")
-    private Set<RolModel> roles = new HashSet<>();
+    @JsonIgnore //sin recursion
+    @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RoleMenuMapping> roleMenus = new HashSet<>();
+
 }

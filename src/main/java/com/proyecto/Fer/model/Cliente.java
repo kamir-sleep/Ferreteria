@@ -2,6 +2,8 @@ package com.proyecto.Fer.model;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -59,6 +61,7 @@ public class Cliente {
 
 
     @OneToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
     @JoinColumn(name = "usuario_login", referencedColumnName = "login")
     private UsuariosModel usuario;
 
