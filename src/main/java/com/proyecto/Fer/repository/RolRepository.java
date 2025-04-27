@@ -11,5 +11,5 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RolRepository extends JpaRepository<RolModel, Long> {
-
+    Optional<RolModel> findById(Long id);
 }

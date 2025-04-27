@@ -44,6 +44,10 @@ public class WebSecurityConfig {
             .and()
             .authorizeHttpRequests() 
             .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
+            .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll() //Aqui mostrar la imagen permiso
+            .requestMatchers(HttpMethod.GET, "/api/archivos/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/uploads/images/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/files/**").permitAll()
             .anyRequest().authenticated();
         return http.build();
     }

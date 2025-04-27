@@ -2,8 +2,11 @@ package com.proyecto.Fer.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,11 +15,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.Data;
 
 @Data
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Empleado {
 
     @Id
@@ -104,6 +109,11 @@ public class Empleado {
     @JsonIgnore
     @JoinColumn(name = "usuario_login", referencedColumnName = "login")
     private UsuariosModel usuario;
+
+    @OneToMany(mappedBy = "empleado")
+    @JsonIgnore
+    private List<Venta> ventas;
+
 
     // Getters y setters omitidos por brevedad
 
